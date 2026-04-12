@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FIFO Pantry</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div id="app-container">
+        <header>
+            <h1>Pantry Manager</h1>
+            <nav class="location-tabs">
+                <button class="tab-btn active" onclick="switchLocation('Fridge')">Fridge</button>
+                <button class="tab-btn" onclick="switchLocation('Freezer')">Freezer</button>
+                <button class="tab-btn" onclick="switchLocation('Cupboard')">Cupboard</button>
+            </nav>
+        </header>
+
+        <main id="inventory-list">
+            <div class="empty-state">Loading your inventory...</div>
+        </main>
+
+        <button id="scan-btn" onclick="openScanner()">
+            <span class="icon">+</span>
+            <span class="label">Scan Item</span>
+        </button>
+    </div>
+
+    <div id="scanner-modal" class="modal">
+        <div class="modal-content">
+            <div id="interactive" class="viewport"></div> <button onclick="closeScanner()" class="close-btn">Cancel</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
