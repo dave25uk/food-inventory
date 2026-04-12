@@ -2,21 +2,17 @@ const supabaseUrl = 'https://qysscushyrhgrodlpovg.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5c3NjdXNoeXJoZ3JvZGxwb3ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MjE3NzEsImV4cCI6MjA5MTM5Nzc3MX0.1KMpTrpzmi6d-r3nbPzGunpiYHkAjpUxuB32RtAlJqI';
 const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-let currentLocation = 'Fridge'; // Default view
+let currentLocation = 'Fridge'; 
 
 async function init() {
     renderUI();
 }
 
-// 1. Tab Switching Logic
 window.switchLocation = (location) => {
     currentLocation = location;
-    
-    // Update UI Active State
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.innerText === location);
     });
-
     renderUI();
 };
 
@@ -24,7 +20,6 @@ async function renderUI() {
     const listContainer = document.getElementById('inventory-list');
     listContainer.innerHTML = '<div class="empty-state">Loading...</div>';
 
-    // 2. Fetch data filtered by location and sorted by expiry (FIFO)
     const { data: inventory, error } = await _supabase
         .from('inventory')
         .select(`
@@ -50,7 +45,6 @@ async function renderUI() {
         return;
     }
 
-    // 3. Render Cards
     listContainer.innerHTML = inventory.map(item => {
         const statusClass = getExpiryStatus(item.expiry_date);
         const formattedDate = new Date(item.expiry_date).toLocaleDateString('en-GB', {
@@ -64,13 +58,18 @@ async function renderUI() {
                     <p>${item.products.brand || ''}</p>
                     <p>Expires: <strong>${formattedDate}</strong></p>
                 </div>
-                <div class="item-qty">${item.quantity}</div>
+                <div class="card-actions">
+                    <div class="item-qty">${item.quantity}</div>
+                    <div class="button-group">
+                        <button class="use-btn" onclick="consumeItem('${item.id}', ${item.quantity})">Use 1</button>
+                        <button class="waste-btn" onclick="wasteItem('${item.id}')">🗑️</button>
+                    </div>
+                </div>
             </div>
         `;
     }).join('');
 }
 
-// 4. Color-Coding Logic
 function getExpiryStatus(dateString) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -80,15 +79,30 @@ function getExpiryStatus(dateString) {
     const diffTime = expiry - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) return 'status-expired';      // Red
-    if (diffDays <= 7) return 'status-7-days';     // Orange
-    if (diffDays <= 30) return 'status-30-days';   // Yellow
-    return ''; // Normal (Default border)
+    if (diffDays < 0) return 'status-expired';
+    if (diffDays <= 7) return 'status-7-days';
+    if (diffDays <= 30) return 'status-30-days';
+    return '';
 }
 
-// Placeholder for the Scanner
+window.consumeItem = async (id, currentQty) => {
+    if (currentQty > 1) {
+        await _supabase.from('inventory').update({ quantity: currentQty - 1 }).eq('id', id);
+    } else {
+        await _supabase.from('inventory').delete().eq('id', id);
+    }
+    renderUI();
+};
+
+window.wasteItem = async (id) => {
+    if (confirm("Remove this entire batch?")) {
+        await _supabase.from('inventory').delete().eq('id', id);
+        renderUI();
+    }
+};
+
 window.openScanner = () => {
-    alert("Scanner logic is next! Ready to connect the camera?");
+    alert("Database is ready! Moving to Camera/Scanner setup next.");
 };
 
 init();
