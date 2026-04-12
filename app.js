@@ -6,6 +6,7 @@ let currentLocation = 'Fridge';
 
 async function init() {
     renderUI();
+	checkSubscription();
 }
 
 window.switchLocation = (location) => {
@@ -356,27 +357,6 @@ const subscribeOptions = {
     }
 };
 
-window.testLocalNotification = async () => {
-    // 1. Check permission state
-    if (Notification.permission !== 'granted') {
-        alert("Permission is currently: " + Notification.permission + ". Tap 'Enable Alerts' first.");
-        return;
-    }
-
-    // 2. Wait for the Service Worker to be ready
-    const registration = await navigator.serviceWorker.ready;
-
-    // 3. Trigger a notification directly from the phone
-    try {
-        await registration.showNotification("Local Test Success! 🎉", {
-            body: "If you see this, your phone is ready to receive pantry alerts.",
-            vibrate: [200, 100, 200],
-            tag: 'test-notification'
-        });
-    } catch (err) {
-        alert("Error showing notification: " + err.message);
-    }
-};
 
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -387,6 +367,19 @@ function urlBase64ToUint8Array(base64String) {
         outputArray[i] = rawData.charCodeAt(i);
     }
     return outputArray;
+}
+
+async function checkSubscription() {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        
+        // If a subscription exists, hide the button
+        if (subscription) {
+            console.log("Active subscription found.");
+            document.getElementById('notify-btn').style.display = 'none';
+        }
+    }
 }
 
 init();
