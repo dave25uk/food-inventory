@@ -69,6 +69,7 @@ main {
 
 /* Slimmer Card Design */
 .inventory-card {
+	border-left: 5px solid #e1e4e8;
     padding: 8px 12px;
     margin-bottom: 6px;
     display: flex;
@@ -78,9 +79,15 @@ main {
 }
 
 /* Color Coding Borders/Text */
-.status-expired { border-left-color: var(--expired); }
-.status-7-days { border-left-color: var(--warning-7); }
-.status-30-days { border-left-color: var(--warning-30); }
+.status-expired { 
+    border-left: 5px solid var(--expired) !important; 
+}
+.status-7-days { 
+    border-left: 5px solid var(--warning-7) !important; 
+}
+.status-30-days { 
+    border-left: 5px solid var(--warning-30) !important; 
+}
 
 .item-info {
     display: flex;

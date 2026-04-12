@@ -65,7 +65,8 @@ async function renderUI() {
 
 // Helper function to keep code clean
 function generateSlimCard(item) {
-    const statusClass = getExpiryStatus(item.expiry_date);
+    // This line is key: it calculates if it's red, orange, or yellow
+    const statusClass = getExpiryStatus(item.expiry_date); 
     const dateLabel = new Date(item.expiry_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
     return `
