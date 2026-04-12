@@ -18,7 +18,9 @@ window.switchLocation = (location) => {
 
 async function renderUI() {
     const listContainer = document.getElementById('inventory-list');
-    listContainer.innerHTML = '<div class="empty-state">Loading...</div>';
+	const existingLegend = listContainer.querySelector('.status-legend')?.outerHTML || '';
+	
+    listContainer.innerHTML = existingLegend + '<div class="empty-state">Loading...</div>';
 
     const { data: inventory, error } = await _supabase
         .from('inventory')
@@ -60,7 +62,8 @@ async function renderUI() {
         items.forEach(item => html += generateSlimCard(item));
     }
 
-    listContainer.innerHTML = html || `<div class="empty-state">No items in ${currentLocation}</div>`;
+    listContainer.innerHTML = existingLegend + (html || `<div class="empty-state">No items in ${currentLocation}</div>`);
+
 }
 
 // Helper function to keep code clean
