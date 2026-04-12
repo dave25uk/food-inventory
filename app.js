@@ -239,4 +239,45 @@ window.closeDetails = () => {
     activeProduct = null;
 };
 
+window.addManualItem = async () => {
+    // 1. Stop the camera
+    Quagga.stop();
+    document.getElementById('scanner-modal').style.display = 'none';
+
+    // 2. Ask for the name
+    const itemName = prompt("Enter item name (e.g., 'Loose Carrots' or 'Leftover Pasta'):");
+    if (!itemName) return;
+
+    // 3. Check if we already have a 'Manual' entry for this name
+    // We'll use a specific flag or just null for barcode to identify manual items
+    let { data: product } = await _supabase
+        .from('products')
+        .select('*')
+        .eq('name', itemName)
+        .is('barcode', null)
+        .maybeSingle();
+
+    if (!product) {
+        // Create a new product entry without a barcode
+        const { data: newP, error } = await _supabase
+            .from('products')
+            .insert([{ 
+                name: itemName, 
+                brand: "Manual Entry",
+                barcode: null // Important: set to null for manual items
+            }])
+            .select()
+            .single();
+        
+        if (error) {
+            console.error("Error creating manual product:", error);
+            return;
+        }
+        product = newP;
+    }
+
+    // 4. Open the details modal just like we do for scanned items
+    askForDetails(product);
+};
+
 init();
