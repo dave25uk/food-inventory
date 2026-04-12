@@ -353,30 +353,15 @@ main {
 .status-legend {
     display: flex;
     justify-content: space-around;
-    padding: 10px 0;
-    margin-bottom: 15px;
-    background: #fff;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    font-size: 11px;
-    font-weight: 700;
+    padding: 12px 0;
+    margin-bottom: 10px;
+    background: transparent; /* Blends better with the page */
+    font-size: 12px;
+    font-weight: 800;
     text-transform: uppercase;
-    color: #636e72;
+    letter-spacing: 0.5px;
 }
 
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.dot {
-    height: 10px;
-    width: 100%; /* We'll make it a small pill shape instead of a circle */
-    max-width: 15px;
-    border-radius: 2px;
-}
-
-.dot.expired { background-color: var(--expired); }
-.dot.warning-7 { background-color: var(--warning-7); }
-.dot.warning-30 { background-color: var(--warning-30); }
+.legend-expired { color: var(--expired); }
+.legend-7 { color: var(--warning-7); }
+.legend-30 { color: var(--warning-30); }
