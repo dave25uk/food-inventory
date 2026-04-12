@@ -316,5 +316,43 @@ window.addManualItem = async () => {
     // 4. Open the details modal just like we do for scanned items
     askForDetails(product);
 };
+window.setupNotifications = async () => {
+    // 1. Check if browser supports push
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert("Push notifications aren't supported on this browser.");
+        return;
+    }
+
+    // 2. Request permission
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+        alert("Permission denied. You can enable it in browser settings.");
+        return;
+    }
+
+    // 3. Register the subscription
+    const registration = await navigator.serviceWorker.ready;
+    
+    // NOTE: You will need a Public VAPID Key here. 
+    // For testing, many use a free service like 'web-push' to generate one.
+    const subscribeOptions = {
+        userVisibleOnly: true,
+        applicationServerKey: 'BEGeWgvFOJ7BO3xu86N7gbDYliWACfBcgkW640djGQSbP4WeWcRXGZZVKLvn5hmUBbtPWV52VgJOosuVGU8ucaY' 
+    };
+
+    const subscription = await registration.pushManager.subscribe(subscribeOptions);
+
+    // 4. Save to Supabase
+    const { error } = await _supabase
+        .from('push_subscriptions')
+        .insert([{ subscription_json: subscription }]);
+
+    if (!error) {
+        alert("Alerts enabled! You'll get a nudge for items expiring soon.");
+        document.getElementById('notify-btn').style.display = 'none';
+    } else {
+        console.error(error);
+    }
+};
 
 init();

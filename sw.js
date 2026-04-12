@@ -18,3 +18,26 @@ self.addEventListener('fetch', (e) => {
     caches.match(e.request).then((response) => response || fetch(e.request))
   );
 });
+
+self.addEventListener('push', (event) => {
+    const data = event.data ? event.data.json() : { title: 'Pantry Update', body: 'Check your expiry dates!' };
+
+    const options = {
+        body: data.body,
+        icon: 'icon-192.png', // Use your new icon!
+        badge: 'icon-192.png',
+        vibrate: [100, 50, 100],
+        data: { url: '/' } // Opens the app when clicked
+    };
+
+    event.waitUntil(
+        self.notification.showNotification(data.title, options)
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    event.waitUntil(
+        clients.openWindow('/')
+    );
+});

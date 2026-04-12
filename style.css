@@ -365,3 +365,10 @@ main {
 .legend-expired { color: var(--expired); }
 .legend-7 { color: var(--warning-7); }
 .legend-30 { color: var(--warning-30); }
+#notify-btn {
+    color: var(--warning-7);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    margin: 5px;
+    padding: 5px 10px;
+}
