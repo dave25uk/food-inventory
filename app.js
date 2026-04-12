@@ -335,10 +335,11 @@ window.setupNotifications = async () => {
     
     // NOTE: You will need a Public VAPID Key here. 
     // For testing, many use a free service like 'web-push' to generate one.
-    const subscribeOptions = {
-        userVisibleOnly: true,
-        applicationServerKey: 'BEGeWgvFOJ7BO3xu86N7gbDYliWACfBcgkW640djGQSbP4WeWcRXGZZVKLvn5hmUBbtPWV52VgJOosuVGU8ucaY' 
-    };
+    // Replace your existing applicationServerKey with this version
+const subscribeOptions = {
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array('BEGeWgvFOJ7BO3xu86N7gbDYliWACfBcgkW640djGQSbP4WeWcRXGZZVKLvn5hmUBbtPWV52VgJOosuVGU8ucaY') 
+};
 
     const subscription = await registration.pushManager.subscribe(subscribeOptions);
 
@@ -376,5 +377,16 @@ window.testLocalNotification = async () => {
         alert("Error showing notification: " + err.message);
     }
 };
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
 
 init();
