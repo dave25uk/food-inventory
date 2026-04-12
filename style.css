@@ -176,3 +176,35 @@ main {
     background: rgba(255, 0, 0, 0.5);
     box-shadow: 0 0 8px red;
 }
+/* Fix for the details modal layout */
+#details-modal .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    margin: 10vh auto; /* 10% from top */
+    width: 90%;
+    max-width: 400px; /* Prevents it looking weird on tablets */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+#details-modal input, 
+#details-modal select {
+    width: 100%; /* Force it to stay inside the padding */
+    display: block;
+    appearance: none; /* Removes some default mobile styling */
+    -webkit-appearance: none;
+    background-color: #f1f2f6;
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px; /* Prevents iOS auto-zoom on focus */
+    margin-bottom: 20px;
+}
+
+#details-modal label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}

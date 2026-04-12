@@ -36,23 +36,27 @@
         </div>
     </div>
 	
-	<div id="details-modal" class="modal">
-    <div class="modal-content" style="background: white; padding: 25px; border-radius: 20px; margin: 20% auto; width: 90%;">
-        <h2 id="scanned-item-name" style="margin-top: 0;">Add Item</h2>
+<div id="details-modal" class="modal">
+    <div class="modal-content">
+        <h2 id="scanned-item-name">Add Item</h2>
         
-        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Expiry Date</label>
-        <input type="date" id="expiry-input" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;">
+        <div class="form-group">
+            <label for="expiry-input">Expiry Date</label>
+            <input type="date" id="expiry-input">
+        </div>
 
-        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Store In</label>
-        <select id="location-input" style="width: 100%; padding: 12px; margin-bottom: 25px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;">
-            <option value="Fridge">Fridge</option>
-            <option value="Freezer">Freezer</option>
-            <option value="Cupboard">Cupboard</option>
-        </select>
+        <div class="form-group">
+            <label for="location-input">Store In</label>
+            <select id="location-input">
+                <option value="Fridge">Fridge</option>
+                <option value="Freezer">Freezer</option>
+                <option value="Cupboard">Cupboard</option>
+            </select>
+        </div>
 
-        <div style="display: flex; gap: 10px;">
-            <button onclick="closeDetails()" style="flex: 1; padding: 15px; border: none; border-radius: 10px; background: #eee; font-weight: 600;">Cancel</button>
-            <button id="save-batch-btn" style="flex: 2; padding: 15px; border: none; border-radius: 10px; background: var(--accent); color: white; font-weight: 600;">Add to Inventory</button>
+        <div class="button-group">
+            <button onclick="closeDetails()" class="cancel-btn">Cancel</button>
+            <button id="save-batch-btn" class="save-btn">Add to Inventory</button>
         </div>
     </div>
 </div>
