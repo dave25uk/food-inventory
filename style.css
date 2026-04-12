@@ -245,6 +245,46 @@ main {
     font-weight: 600;
     color: var(--text);
 }
+/* Thumb-friendly Modal Buttons */
+#details-modal .button-group {
+    display: flex;
+    flex-direction: column; /* Stacked buttons are often easier on mobile */
+    gap: 12px;
+    margin-top: 10px;
+}
+
+#details-modal button {
+    width: 100%;
+    padding: 16px; /* Increased height for easier tapping */
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+#details-modal .save-btn {
+    background: var(--accent);
+    color: white;
+    order: 1; /* Puts the primary action on top */
+}
+
+#details-modal .cancel-btn {
+    background: #f1f2f6;
+    color: #8e8e93;
+    order: 2;
+}
+
+#details-modal button:active {
+    transform: scale(0.98); /* Visual feedback when pressed */
+}
+#details-modal h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: var(--text);
+    text-align: center;
+}
 .scanner-controls {
     display: flex;
     flex-direction: column;
