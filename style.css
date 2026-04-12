@@ -110,14 +110,18 @@ main {
     font-weight: 800;
     text-transform: uppercase;
     color: #8e8e93;
-    margin: 20px 0 10px 5px;
+    margin: 24px 0 8px 5px; /* Increased top margin for better separation */
     letter-spacing: 0.5px;
+    
+    /* This adds the line to ALL headers */
+    border-bottom: 2px solid #e1e4e8; 
+    padding-bottom: 6px;
 }
 
 .priority-header {
+    /* We keep the orange color override for the priority section */
     color: var(--warning-7);
-    border-bottom: 2px solid var(--warning-7);
-    padding-bottom: 4px;
+    border-bottom-color: var(--warning-7);
 }
 
 
