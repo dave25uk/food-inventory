@@ -20,17 +20,17 @@ async function renderUI() {
     const listContainer = document.getElementById('inventory-list');
     listContainer.innerHTML = '<div class="empty-state">Loading...</div>';
 
-    const { data: inventory, error } = await _supabase
-        .from('inventory')
-        .select(`
-            id,
-            expiry_date,
-            quantity,
-            location,
-            products (name, brand)
-        `)
-        .eq('location', currentLocation)
-        .order('expiry_date', { ascending: true });
+const { data: inventory, error } = await _supabase
+    .from('inventory')
+    .select(`
+        id,
+        expiry_date,
+        quantity,
+        location,
+        products (name, brand, category)
+    `)
+    .eq('location', currentLocation)
+    .order('expiry_date', { ascending: true });
 
     if (error) {
         console.error("Error fetching inventory:", error);
@@ -54,7 +54,8 @@ async function renderUI() {
         return `
             <div class="inventory-card ${statusClass}">
                 <div class="item-info">
-                    <h3>${item.products.name}</h3>
+				<span class="category-tag">${item.products.category || 'Other'}</span>
+					<h3>${item.products.name}</h3>
                     <p>${item.products.brand || ''}</p>
                     <p>Expires: <strong>${formattedDate}</strong></p>
                 </div>
@@ -68,6 +69,26 @@ async function renderUI() {
             </div>
         `;
     }).join('');
+}
+
+function guessCategory(name) {
+    const productName = name.toLowerCase();
+    
+    // Keyword mappings
+    const keywords = {
+        'Dairy': ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'egg'],
+        'Raw Meat': ['chicken', 'beef', 'steak', 'pork', 'mince', 'lamb', 'turkey', 'raw'],
+        'Cooked Meat': ['ham', 'salami', 'chorizo', 'roast', 'cooked', 'deli'],
+        'Vegetables': ['carrot', 'potato', 'onion', 'pepper', 'lettuce', 'broccoli', 'salad', 'fruit', 'apple', 'banana']
+    };
+
+    for (const [category, words] of Object.entries(keywords)) {
+        if (words.some(word => productName.includes(word))) {
+            return category;
+        }
+    }
+    
+    return 'Other'; // Fallback
 }
 
 function getExpiryStatus(dateString) {
@@ -195,26 +216,28 @@ let activeProduct = null;
 async function askForDetails(product) {
     activeProduct = product;
     
-    // Set UI elements
     document.getElementById('scanned-item-name').innerText = `Add ${product.name}`;
-    document.getElementById('location-input').value = currentLocation; // Default to current tab
     
-    // Default the date to today to make it easier to pick
+    // Perform the auto-guess
+    const suggestedCategory = guessCategory(product.name);
+    document.getElementById('category-input').value = suggestedCategory;
+    
+    document.getElementById('location-input').value = currentLocation;
     document.getElementById('expiry-input').valueAsDate = new Date();
-    
-    // Show modal
     document.getElementById('details-modal').style.display = 'block';
 
-    // Handle Save Button
     document.getElementById('save-batch-btn').onclick = async () => {
         const expiry = document.getElementById('expiry-input').value;
         const location = document.getElementById('location-input').value;
+        const category = document.getElementById('category-input').value;
 
-        if (!expiry) {
-            alert("Please select an expiry date.");
-            return;
-        }
+        // 1. Update the Product category if it's new or changed
+        await _supabase
+            .from('products')
+            .update({ category: category })
+            .eq('id', activeProduct.id);
 
+        // 2. Insert into inventory
         const { error } = await _supabase
             .from('inventory')
             .insert([{
@@ -224,12 +247,9 @@ async function askForDetails(product) {
                 quantity: 1
             }]);
 
-        if (error) {
-            console.error("Error saving batch:", error);
-            alert("Failed to save item.");
-        } else {
+        if (!error) {
             closeDetails();
-            renderUI(); // Refresh list to show new item
+            renderUI();
         }
     };
 }
