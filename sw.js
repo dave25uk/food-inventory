@@ -3,6 +3,7 @@ const ASSETS = [
   'index.html',
   'style.css',
   'app.js',
+  'icon-192.png',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
   'https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js'
 ];
@@ -31,7 +32,7 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-        self.notification.showNotification(data.title, options)
+        self.registration.showNotification(data.title, options)
     );
 });
 
