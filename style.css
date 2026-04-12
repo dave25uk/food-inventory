@@ -353,8 +353,8 @@ main {
 .status-legend {
     display: flex;
     justify-content: space-around;
-    padding: 6px 0;
-    margin-bottom: 10px;
+    padding: 3px 0;
+    margin-bottom: 6px;
     background: transparent; /* Blends better with the page */
     font-size: 12px;
     font-weight: 800;
