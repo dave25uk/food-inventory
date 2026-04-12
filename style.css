@@ -67,16 +67,14 @@ main {
     flex-grow: 1;
 }
 
+/* Slimmer Card Design */
 .inventory-card {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 8px 12px;
+    margin-bottom: 6px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-left: 5px solid transparent;
+    border-radius: 8px;
 }
 
 /* Color Coding Borders/Text */
@@ -84,8 +82,20 @@ main {
 .status-7-days { border-left-color: var(--warning-7); }
 .status-30-days { border-left-color: var(--warning-30); }
 
-.item-info h3 { margin: 0; font-size: 18px; }
-.item-info p { margin: 4px 0 0; font-size: 14px; color: #636e72; }
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.item-info h3 {
+    font-size: 15px;
+    margin: 0;
+}
+
+.item-info p {
+    font-size: 12px;
+    margin: 0;
+}
 
 .item-qty {
     font-size: 20px;
@@ -94,6 +104,22 @@ main {
     padding: 8px 12px;
     border-radius: 8px;
 }
+/* Sub-heading Styling */
+.section-header {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #8e8e93;
+    margin: 20px 0 10px 5px;
+    letter-spacing: 0.5px;
+}
+
+.priority-header {
+    color: var(--warning-7);
+    border-bottom: 2px solid var(--warning-7);
+    padding-bottom: 4px;
+}
+
 
 /* Floating Action Button */
 #scan-btn {

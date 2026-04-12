@@ -20,55 +20,66 @@ async function renderUI() {
     const listContainer = document.getElementById('inventory-list');
     listContainer.innerHTML = '<div class="empty-state">Loading...</div>';
 
-const { data: inventory, error } = await _supabase
-    .from('inventory')
-    .select(`
-        id,
-        expiry_date,
-        quantity,
-        location,
-        products (name, brand, category)
-    `)
-    .eq('location', currentLocation)
-    .order('expiry_date', { ascending: true });
+    const { data: inventory, error } = await _supabase
+        .from('inventory')
+        .select(`id, expiry_date, quantity, location, products (name, brand, category)`)
+        .eq('location', currentLocation)
+        .order('expiry_date', { ascending: true });
 
-    if (error) {
-        console.error("Error fetching inventory:", error);
-        return;
+    if (error || !inventory) return;
+
+    // 1. Separate into Priority and Categorized
+    const priorityItems = [];
+    const categorizedItems = {};
+
+    inventory.forEach(item => {
+        const status = getExpiryStatus(item.expiry_date);
+        
+        // If it's Red, Orange, or Yellow, it goes to Priority
+        if (status === 'status-expired' || status === 'status-7-days' || status === 'status-30-days') {
+            priorityItems.push(item);
+        } else {
+            // Otherwise, group by category
+            const cat = item.products.category || 'Other';
+            if (!categorizedItems[cat]) categorizedItems[cat] = [];
+            categorizedItems[cat].push(item);
+        }
+    });
+
+    let html = '';
+
+    // 2. Render Priority Section
+    if (priorityItems.length > 0) {
+        html += `<div class="section-header priority-header">Attention Required</div>`;
+        priorityItems.forEach(item => html += generateSlimCard(item));
     }
 
-    if (!inventory || inventory.length === 0) {
-        listContainer.innerHTML = `
-            <div class="empty-state" style="text-align:center; padding:40px; color:#8e8e93;">
-                Your ${currentLocation} is currently empty.
-            </div>`;
-        return;
+    // 3. Render Categorized Sections
+    for (const [category, items] of Object.entries(categorizedItems)) {
+        html += `<div class="section-header">${category}</div>`;
+        items.forEach(item => html += generateSlimCard(item));
     }
 
-    listContainer.innerHTML = inventory.map(item => {
-        const statusClass = getExpiryStatus(item.expiry_date);
-        const formattedDate = new Date(item.expiry_date).toLocaleDateString('en-GB', {
-            day: 'numeric', month: 'short', year: 'numeric'
-        });
+    listContainer.innerHTML = html || `<div class="empty-state">No items in ${currentLocation}</div>`;
+}
 
-        return `
-            <div class="inventory-card ${statusClass}">
-                <div class="item-info">
-				<span class="category-tag">${item.products.category || 'Other'}</span>
-					<h3>${item.products.name}</h3>
-                    <p>${item.products.brand || ''}</p>
-                    <p>Expires: <strong>${formattedDate}</strong></p>
-                </div>
-                <div class="card-actions">
-                    <div class="item-qty">${item.quantity}</div>
-                    <div class="button-group">
-                        <button class="use-btn" onclick="consumeItem('${item.id}', ${item.quantity})">Use 1</button>
-                        <button class="waste-btn" onclick="wasteItem('${item.id}')">🗑️</button>
-                    </div>
-                </div>
+// Helper function to keep code clean
+function generateSlimCard(item) {
+    const statusClass = getExpiryStatus(item.expiry_date);
+    const dateLabel = new Date(item.expiry_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+    return `
+        <div class="inventory-card ${statusClass}">
+            <div class="item-info">
+                <h3>${item.products.name}</h3>
+                <p>${item.products.brand || ''} • Exp: ${dateLabel}</p>
             </div>
-        `;
-    }).join('');
+            <div class="button-group">
+                <span class="item-qty" style="background:none; font-size:16px; margin-right:10px;">x${item.quantity}</span>
+                <button class="use-btn" style="padding: 5px 10px; font-size: 12px;" onclick="consumeItem('${item.id}', ${item.quantity})">Use</button>
+            </div>
+        </div>
+    `;
 }
 
 function guessCategory(name) {
