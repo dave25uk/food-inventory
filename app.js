@@ -101,8 +101,93 @@ window.wasteItem = async (id) => {
     }
 };
 
+// 1. Start the Scanner
 window.openScanner = () => {
-    alert("Database is ready! Moving to Camera/Scanner setup next.");
+    document.getElementById('scanner-modal').style.display = 'block';
+
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#interactive'), // The div in your HTML
+            constraints: {
+                facingMode: "environment" // Use back camera
+            },
+        },
+        decoder: {
+            readers: ["ean_reader", "ean_8_reader"] // Standard grocery barcodes
+        }
+    }, function(err) {
+        if (err) {
+            console.error(err);
+            alert("Camera error: " + err);
+            return;
+        }
+        Quagga.start();
+    });
+
+    // 2. What happens when a code is detected
+    Quagga.onDetected(async (data) => {
+        const code = data.codeResult.code;
+        Quagga.stop(); // Stop scanning once we find one
+        
+        // Haptic feedback (vibrate) if supported
+        if (navigator.vibrate) navigator.vibrate(100);
+        
+        handleBarcodeFound(code);
+    });
+};
+
+// 3. Handle the Result
+async function handleBarcodeFound(barcode) {
+    document.getElementById('scanner-modal').style.display = 'none';
+    
+    // Check if we already know this product in our Supabase 'products' table
+    let { data: product } = await _supabase
+        .from('products')
+        .select('*')
+        .eq('barcode', barcode)
+        .maybeSingle();
+
+    if (!product) {
+        // Not in our DB? Fetch from Open Food Facts API
+        const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+        const result = await response.json();
+
+        if (result.status === 1) {
+            const pData = result.product;
+            // Save new product to our DB
+            const { data: newP, error } = await _supabase
+                .from('products')
+                .insert([{ 
+                    barcode: barcode, 
+                    name: pData.product_name || "Unknown Item",
+                    brand: pData.brands || "",
+                    image_url: pData.image_front_url || ""
+                }])
+                .select()
+                .single();
+            product = newP;
+        } else {
+            // Manually enter if not found in global API
+            const manualName = prompt("Product not found. Enter name:");
+            if (!manualName) return;
+            const { data: newP } = await _supabase
+                .from('products')
+                .insert([{ barcode: barcode, name: manualName }])
+                .select()
+                .single();
+            product = newP;
+        }
+    }
+
+    // Now proceed to add this product to a specific location/batch
+    askForDetails(product);
+}
+
+window.closeScanner = () => {
+    Quagga.stop();
+    document.getElementById('scanner-modal').style.display = 'none';
 };
 
 init();
