@@ -190,4 +190,53 @@ window.closeScanner = () => {
     document.getElementById('scanner-modal').style.display = 'none';
 };
 
+let activeProduct = null;
+
+async function askForDetails(product) {
+    activeProduct = product;
+    
+    // Set UI elements
+    document.getElementById('scanned-item-name').innerText = `Add ${product.name}`;
+    document.getElementById('location-input').value = currentLocation; // Default to current tab
+    
+    // Default the date to today to make it easier to pick
+    document.getElementById('expiry-input').valueAsDate = new Date();
+    
+    // Show modal
+    document.getElementById('details-modal').style.display = 'block';
+
+    // Handle Save Button
+    document.getElementById('save-batch-btn').onclick = async () => {
+        const expiry = document.getElementById('expiry-input').value;
+        const location = document.getElementById('location-input').value;
+
+        if (!expiry) {
+            alert("Please select an expiry date.");
+            return;
+        }
+
+        const { error } = await _supabase
+            .from('inventory')
+            .insert([{
+                product_id: activeProduct.id,
+                expiry_date: expiry,
+                location: location,
+                quantity: 1
+            }]);
+
+        if (error) {
+            console.error("Error saving batch:", error);
+            alert("Failed to save item.");
+        } else {
+            closeDetails();
+            renderUI(); // Refresh list to show new item
+        }
+    };
+}
+
+window.closeDetails = () => {
+    document.getElementById('details-modal').style.display = 'none';
+    activeProduct = null;
+};
+
 init();
