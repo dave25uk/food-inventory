@@ -355,4 +355,26 @@ window.setupNotifications = async () => {
     }
 };
 
+window.testLocalNotification = async () => {
+    // 1. Check permission state
+    if (Notification.permission !== 'granted') {
+        alert("Permission is currently: " + Notification.permission + ". Tap 'Enable Alerts' first.");
+        return;
+    }
+
+    // 2. Wait for the Service Worker to be ready
+    const registration = await navigator.serviceWorker.ready;
+
+    // 3. Trigger a notification directly from the phone
+    try {
+        await registration.showNotification("Local Test Success! 🎉", {
+            body: "If you see this, your phone is ready to receive pantry alerts.",
+            vibrate: [200, 100, 200],
+            tag: 'test-notification'
+        });
+    } catch (err) {
+        alert("Error showing notification: " + err.message);
+    }
+};
+
 init();
