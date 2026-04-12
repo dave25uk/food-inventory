@@ -89,9 +89,11 @@ function guessCategory(name) {
     // Keyword mappings
     const keywords = {
         'Dairy': ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'egg'],
-        'Raw Meat': ['chicken', 'beef', 'steak', 'pork', 'mince', 'lamb', 'turkey', 'raw'],
+        'Raw Meat': ['chicken', 'beef', 'steak', 'pork', 'mince', 'lamb', 'turkey', 'raw', 'bacon', 'sausages'],
         'Cooked Meat': ['ham', 'salami', 'chorizo', 'roast', 'cooked', 'deli'],
-        'Vegetables': ['carrot', 'potato', 'onion', 'pepper', 'lettuce', 'broccoli', 'salad', 'fruit', 'apple', 'banana']
+        'Vegetables': ['carrot', 'potato', 'onion', 'pepper', 'lettuce', 'broccoli', 'salad', 'fruit', 'apple', 'banana'. 'cabbage', parsnip', 'sprout', 'swede', 'peas'],
+		'Leftovers': ['lasagne', 'spag', 'curry', 'cottage', 'chilli'],
+		'Drinks': ['orange', 'apple']
     };
 
     for (const [category, words] of Object.entries(keywords)) {
