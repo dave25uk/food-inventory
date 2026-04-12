@@ -338,7 +338,7 @@ window.setupNotifications = async () => {
     // Replace your existing applicationServerKey with this version
 const subscribeOptions = {
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array('BEGeWgvFOJ7BO3xu86N7gbDYliWACfBcgkW640djGQSbP4WeWcRXGZZVKLvn5hmUBbtPWV52VgJOosuVGU8ucaY') 
+    applicationServerKey: urlBase64ToUint8Array('BHuC6xzlxSG1973K4WD_czEUhyWLQ1BLmjECGxGV6RTS4VSepKYItobdr9brLgIYmNeifb0TBfjRoXxgTrOOwUk') 
 };
 
     const subscription = await registration.pushManager.subscribe(subscribeOptions);
