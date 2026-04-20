@@ -35,19 +35,20 @@ async function renderUI() {
     const priorityItems = [];
     const categorizedItems = {};
 
-    inventory.forEach(item => {
-        const status = getExpiryStatus(item.expiry_date);
-        
-        // If it's Red, Orange, or Yellow, it goes to Priority
-        if (status === 'status-expired' || status === 'status-7-days') {
-            priorityItems.push(item);
-        } else {
-            // Otherwise, group by category
-            const cat = item.products.category || 'Other';
-            if (!categorizedItems[cat]) categorizedItems[cat] = [];
-            categorizedItems[cat].push(item);
-        }
-    });
+inventory.forEach(item => {
+    const expiryData = getExpiryStatus(item.expiry_date);
+    const status = expiryData.statusClass; 
+    
+    // items with 'status-expired' or 'status-7-days' go to the top section
+    if (status === 'status-expired' || status === 'status-7-days') {
+        priorityItems.push(item);
+    } else {
+        // Everything else stays in its category
+        const cat = item.products.category || 'Other';
+        if (!categorizedItems[cat]) categorizedItems[cat] = [];
+        categorizedItems[cat].push(item);
+    }
+});
 
     let html = '';
 
@@ -69,16 +70,25 @@ async function renderUI() {
 
 // Helper function to keep code clean
 function generateSlimCard(item) {
-    const { statusClass, daysLeft } = getExpiryStatus(item.expiry_date); 
+    const expiryData = getExpiryStatus(item.expiry_date); 
+    const statusClass = expiryData.statusClass;
+    const daysLeft = expiryData.daysLeft;
+    
     const dateLabel = new Date(item.expiry_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
-    // Create the "Days Left" text
     let daysDisplay = '';
+    
     if (daysLeft < 0) {
+        // Red for expired
         daysDisplay = `<span style="color: #d32f2f; font-weight: bold;">Expired</span>`;
     } else if (daysLeft === 0) {
+        // Orange for today
         daysDisplay = `<span style="color: #ef6c00; font-weight: bold;">Expires Today</span>`;
+    } else if (daysLeft <= 7) {
+        // Orange for 1-7 days
+        daysDisplay = `<span style="color: #ef6c00; font-weight: bold;">${daysLeft} days left</span>`;
     } else {
+        // Default grey/black for everything else
         daysDisplay = `${daysLeft} days left`;
     }
 
