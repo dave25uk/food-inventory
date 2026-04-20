@@ -19,74 +19,69 @@ window.switchLocation = (location) => {
 
 async function renderUI() {
     const listContainer = document.getElementById('inventory-list');
-    const existingLegend = listContainer.querySelector('.status-legend')?.outerHTML || '';
     
-    listContainer.innerHTML = existingLegend + '<div class="empty-state">Loading...</div>';
+    // Safety check for the container
+    if (!listContainer) return;
 
-    // Fetch EVERYTHING to check for global attention
-    const { data: allInventory, error } = await _supabase
-        .from('inventory')
-        .select(`id, expiry_date, quantity, location, products (name, category)`)
-        .order('expiry_date', { ascending: true });
+    try {
+        // 1. Fetch EVERYTHING from Supabase
+        const { data: allInventory, error } = await _supabase
+            .from('inventory')
+            .select(`id, expiry_date, quantity, location, products (name, category)`)
+            .order('expiry_date', { ascending: true });
 
-    if (error || !allInventory) return;
-
-    const priorityItems = [];
-    const categorizedItems = {};
-
-    allInventory.forEach(item => {
-        const expiryData = getExpiryStatus(item.expiry_date);
-        const status = expiryData.statusClass;
-        
-        // 1. If it's urgent, add to priority regardless of location
-        if (status === 'status-expired' || status === 'status-7-days') {
-            priorityItems.push(item);
-        } 
-        
-        // 2. If it's in the CURRENT location, add to category list
-        if (item.location === currentLocation) {
-            // We skip adding it here if it's already in priority to avoid duplicates
-            if (!(status === 'status-expired' || status === 'status-7-days')) {
-                const cat = item.products.category || 'Other';
-                if (!categorizedItems[cat]) categorizedItems[cat] = [];
-                categorizedItems[cat].push(item);
-            }
+        if (error) throw error;
+        if (!allInventory) {
+            listContainer.innerHTML = `<div class="empty-state">No items found.</div>`;
+            return;
         }
-    });
 
-    let html = '';
+        const priorityItems = [];
+        const categorizedItems = {};
 
-    // Render Priority Section (Global)
-    if (priorityItems.length > 0) {
-        html += `<div class="section-header priority-header">Attention Required (All Locations)</div>`;
-        priorityItems.forEach(item => html += generateSlimCard(item, true));
+        allInventory.forEach(item => {
+            const expiryData = getExpiryStatus(item.expiry_date);
+            const status = expiryData.statusClass;
+            
+            // Logic: If it's urgent, it ALWAYS goes in priority (Global)
+            if (status === 'status-expired' || status === 'status-7-days') {
+                priorityItems.push(item);
+            } 
+            
+            // Logic: If it's in the CURRENT tab, and NOT urgent, put in category
+            if (item.location === currentLocation) {
+                if (status !== 'status-expired' && status !== 'status-7-days') {
+                    const cat = item.products?.category || 'Other';
+                    if (!categorizedItems[cat]) categorizedItems[cat] = [];
+                    categorizedItems[cat].push(item);
+                }
+            }
+        });
+
+        let html = '';
+
+        // Render Priority Section (Passing 'true' to show the location tag)
+        if (priorityItems.length > 0) {
+            html += `<div class="section-header priority-header">Attention Required (All Locations)</div>`;
+            priorityItems.forEach(item => {
+                html += generateSlimCard(item, true);
+            });
+        }
+
+        // Render Categorized Sections (Passing 'false' to hide location tag)
+        for (const [category, items] of Object.entries(categorizedItems)) {
+            html += `<div class="section-header">${category}</div>`;
+            items.forEach(item => {
+                html += generateSlimCard(item, false);
+            });
+        }
+
+        listContainer.innerHTML = html || `<div class="empty-state">No items in ${currentLocation}</div>`;
+
+    } catch (err) {
+        console.error("UI Render Error:", err);
+        listContainer.innerHTML = `<div class="empty-state" style="color:red;">Error loading inventory: ${err.message}</div>`;
     }
-
-    // Render Categorized Sections (Current Location only)
-    for (const [category, items] of Object.entries(categorizedItems)) {
-        html += `<div class="section-header">${category}</div>`;
-        items.forEach(item => html += generateSlimCard(item, false));
-    }
-
-    listContainer.innerHTML = existingLegend + (html || `<div class="empty-state">No items in ${currentLocation}</div>`);
-}
-
-    let html = '';
-
-    // 2. Render Priority Section
-    if (priorityItems.length > 0) {
-        html += `<div class="section-header priority-header">Attention Required</div>`;
-        priorityItems.forEach(item => html += generateSlimCard(item));
-    }
-
-    // 3. Render Categorized Sections
-    for (const [category, items] of Object.entries(categorizedItems)) {
-        html += `<div class="section-header">${category}</div>`;
-        items.forEach(item => html += generateSlimCard(item));
-    }
-
-    listContainer.innerHTML = existingLegend + (html || `<div class="empty-state">No items in ${currentLocation}</div>`);
-
 }
 
 // Helper function to keep code clean
@@ -108,13 +103,12 @@ function generateSlimCard(item, showLocation) {
         daysDisplay = `${daysLeft} days left`;
     }
 
-    // Only show location if it's in the global priority list
-    const locationTag = showLocation ? `<span style="font-size: 10px; opacity: 0.6; margin-left: 5px;">[${item.location}]</span>` : '';
+    const locationTag = (showLocation && item.location) ? `<span style="font-size: 11px; opacity: 0.5; font-weight: normal;"> (${item.location})</span>` : '';
 
     return `
         <div class="inventory-card ${statusClass}">
             <div class="item-info">
-                <h3>${item.products.name}${locationTag}</h3>
+                <h3>${item.products?.name || 'Unknown Item'}${locationTag}</h3>
                 <p>${daysDisplay} • <small style="opacity: 0.7;">Exp: ${dateLabel}</small></p>
             </div>
             <div class="button-group">
