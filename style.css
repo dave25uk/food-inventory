@@ -85,9 +85,6 @@ main {
 .status-7-days { 
     border-left: 5px solid var(--warning-7) !important; 
 }
-.status-30-days { 
-    border-left: 5px solid var(--warning-30) !important; 
-}
 
 .item-info {
     display: flex;

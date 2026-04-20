@@ -39,7 +39,7 @@ async function renderUI() {
         const status = getExpiryStatus(item.expiry_date);
         
         // If it's Red, Orange, or Yellow, it goes to Priority
-        if (status === 'status-expired' || status === 'status-7-days' || status === 'status-30-days') {
+        if (status === 'status-expired' || status === 'status-7-days') {
             priorityItems.push(item);
         } else {
             // Otherwise, group by category
@@ -69,15 +69,25 @@ async function renderUI() {
 
 // Helper function to keep code clean
 function generateSlimCard(item) {
-    // This line is key: it calculates if it's red, orange, or yellow
-    const statusClass = getExpiryStatus(item.expiry_date); 
+    const { statusClass, daysLeft } = getExpiryStatus(item.expiry_date); 
     const dateLabel = new Date(item.expiry_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+    // Create the "Days Left" text
+    let daysDisplay = '';
+    if (daysLeft < 0) {
+        daysDisplay = `<span style="color: #d32f2f; font-weight: bold;">Expired</span>`;
+    } else if (daysLeft === 0) {
+        daysDisplay = `<span style="color: #ef6c00; font-weight: bold;">Expires Today</span>`;
+    } else {
+        daysDisplay = `${daysLeft} days left`;
+    }
 
     return `
         <div class="inventory-card ${statusClass}">
             <div class="item-info">
                 <h3>${item.products.name}</h3>
-                <p>${item.products.brand || ''} • Exp: ${dateLabel}</p>
+                <p>${item.products.brand || ''} • ${daysDisplay}</p>
+                <small style="opacity: 0.7;">Exp: ${dateLabel}</small>
             </div>
             <div class="button-group">
                 <span class="item-qty" style="background:none; font-size:16px; margin-right:10px;">x${item.quantity}</span>
@@ -118,10 +128,16 @@ function getExpiryStatus(dateString) {
     const diffTime = expiry - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) return 'status-expired';
-    if (diffDays <= 7) return 'status-7-days';
-    if (diffDays <= 30) return 'status-30-days';
-    return '';
+    // Determine the CSS class for colors
+    let statusClass = '';
+    if (diffDays < 0) statusClass = 'status-expired';
+    else if (diffDays <= 7) statusClass = 'status-7-days';
+    // Removed the 30-day highlight logic here
+
+    return {
+        statusClass: statusClass,
+        daysLeft: diffDays
+    };
 }
 
 window.consumeItem = async (id, currentQty) => {
