@@ -89,31 +89,44 @@ function generateSlimCard(item, showLocation) {
     const expiryData = getExpiryStatus(item.expiry_date); 
     const statusClass = expiryData.statusClass;
     const daysLeft = expiryData.daysLeft;
-    
     const dateLabel = new Date(item.expiry_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
-    let daysDisplay = '';
+    // Format the big badge text
+    let badgeText = '';
+    let badgeColor = '#333'; // Default dark grey
+
     if (daysLeft < 0) {
-        daysDisplay = `<span style="color: #d32f2f; font-weight: bold;">Expired</span>`;
+        badgeText = 'EXP';
+        badgeColor = '#d32f2f'; // Red
     } else if (daysLeft === 0) {
-        daysDisplay = `<span style="color: #ef6c00; font-weight: bold;">Expires Today</span>`;
-    } else if (daysLeft <= 7) {
-        daysDisplay = `<span style="color: #ef6c00; font-weight: bold;">${daysLeft} days left</span>`;
+        badgeText = '0';
+        badgeColor = '#ef6c00'; // Orange
     } else {
-        daysDisplay = `${daysLeft} days left`;
+        badgeText = daysLeft;
+        if (daysLeft <= 7) badgeColor = '#ef6c00'; // Orange for urgent
     }
 
-    const locationTag = (showLocation && item.location) ? `<span style="font-size: 11px; opacity: 0.5; font-weight: normal;"> (${item.location})</span>` : '';
+    const locationTag = (showLocation && item.location) ? `<span style="font-size: 11px; opacity: 0.5; font-weight: normal; display: block;">${item.location}</span>` : '';
 
     return `
-        <div class="inventory-card ${statusClass}">
-            <div class="item-info">
-                <h3>${item.products?.name || 'Unknown Item'}${locationTag}</h3>
-                <p>${daysDisplay} • <small style="opacity: 0.7;">Exp: ${dateLabel}</small></p>
+        <div class="inventory-card ${statusClass}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px;">
+            <div class="item-info" style="flex: 1;">
+                <h3 style="margin: 0; font-size: 16px;">${item.products?.name || 'Unknown Item'}</h3>
+                ${locationTag}
+                <small style="opacity: 0.6;">Expires: ${dateLabel}</small>
             </div>
+            
+            <div class="status-area" style="display: flex; flex-direction: column; align-items: center; min-width: 60px; margin: 0 10px;">
+                <span class="days-badge" style="font-size: 24px; font-weight: 800; color: ${badgeColor}; line-height: 1;">
+                    ${badgeText}
+                </span>
+                <span style="font-size: 10px; text-transform: uppercase; color: ${badgeColor}; font-weight: bold; margin-top: 2px;">
+                    ${daysLeft === 1 ? 'Day' : (daysLeft < 0 ? '!!!' : 'Days')}
+                </span>
+            </div>
+
             <div class="button-group">
-                <span class="item-qty" style="background:none; font-size:16px; margin-right:10px;">x${item.quantity}</span>
-                <button class="use-btn" style="padding: 5px 10px; font-size: 12px;" onclick="consumeItem('${item.id}', ${item.quantity})">Use</button>
+                <button class="use-btn" style="padding: 8px 12px; font-size: 12px; border-radius: 6px; border: none; background: #eee; cursor: pointer;" onclick="consumeItem('${item.id}', 1)">Use</button>
             </div>
         </div>
     `;
@@ -162,13 +175,15 @@ function getExpiryStatus(dateString) {
     };
 }
 
-window.consumeItem = async (id, currentQty) => {
-    if (currentQty > 1) {
-        await _supabase.from('inventory').update({ quantity: currentQty - 1 }).eq('id', id);
+window.consumeItem = async (id) => {
+    // We just delete the record entirely now
+    const { error } = await _supabase.from('inventory').delete().eq('id', id);
+    
+    if (!error) {
+        renderUI();
     } else {
-        await _supabase.from('inventory').delete().eq('id', id);
+        console.error("Error removing item:", error);
     }
-    renderUI();
 };
 
 window.wasteItem = async (id) => {
