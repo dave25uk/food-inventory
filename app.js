@@ -126,8 +126,20 @@ function generateSlimCard(item, showLocation) {
             </div>
 
             <div class="button-group">
-                <button class="use-btn" style="padding: 8px 12px; font-size: 12px; border-radius: 6px; border: none; background: #eee; cursor: pointer;" onclick="consumeItem('${item.id}', 1)">Use</button>
-            </div>
+    <button class="use-btn" 
+            style="padding: 10px 15px; 
+                   font-size: 13px; 
+                   font-weight: 600;
+                   border-radius: 8px; 
+                   border: 1px solid #ddd; 
+                   background: white; 
+                   color: #333;
+                   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                   cursor: pointer;" 
+            onclick="consumeItem('${item.id}')">
+        Use
+    </button>
+</div>
         </div>
     `;
 }
@@ -176,13 +188,18 @@ function getExpiryStatus(dateString) {
 }
 
 window.consumeItem = async (id) => {
-    // We just delete the record entirely now
-    const { error } = await _supabase.from('inventory').delete().eq('id', id);
+    // Add the confirmation check
+    const confirmed = confirm("Are you sure you want to remove this item?");
     
-    if (!error) {
-        renderUI();
-    } else {
-        console.error("Error removing item:", error);
+    if (confirmed) {
+        const { error } = await _supabase.from('inventory').delete().eq('id', id);
+        
+        if (!error) {
+            renderUI();
+        } else {
+            console.error("Error removing item:", error);
+            alert("Could not remove item. Check your connection.");
+        }
     }
 };
 
